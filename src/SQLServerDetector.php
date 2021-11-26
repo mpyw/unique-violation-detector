@@ -24,7 +24,7 @@ class SQLServerDetector implements UniqueViolationDetector
             default:
                 return ($e->errorInfo[1] ?? 0) === 20018
                     && \preg_match(
-                        '/^Violation of (?:PRIMARY|UNIQUE) KEY constraint/',
+                        '/^(?:Violation of (?:PRIMARY|UNIQUE) KEY constraint|Cannot insert duplicate key row)/',
                         $e->errorInfo[2] ?? ''
                     );
         }

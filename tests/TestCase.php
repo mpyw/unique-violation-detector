@@ -33,7 +33,7 @@ abstract class TestCase extends BaseTestCase
             $this->pdo = self::initPdo($this->driver);
 
             if ($this->driver === 'sqlite') {
-                $this->pdo->exec('PRAGMA foreign_keys=true;');
+                $this->pdo->exec('PRAGMA foreign_keys=true');
             } else {
                 $this->pdo->exec('DROP TABLE IF EXISTS posts');
                 $this->pdo->exec('DROP TABLE IF EXISTS users');
