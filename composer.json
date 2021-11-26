@@ -1,6 +1,6 @@
 {
     "name": "mpyw/unique-violation-detector",
-    "description": "",
+    "description": "Detect primary/unique key or constraint violation errors from PDOException.",
     "type": "library",
     "license": "MIT",
     "authors": [

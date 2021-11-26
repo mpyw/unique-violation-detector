@@ -1,6 +1,6 @@
 # Unique Violation Detector [![Build Status](https://github.com/mpyw/unique-violation-detector/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/mpyw/unique-violation-detector/actions) [![Coverage Status](https://coveralls.io/repos/github/mpyw/unique-violation-detector/badge.svg?branch=master)](https://coveralls.io/github/mpyw/unique-violation-detector?branch=master)
 
-Detect **primary/unique key violation** errors from `PDOException`.
+Detect **primary/unique key or constraint violation** errors from `PDOException`.
 
 ## Installing
 
