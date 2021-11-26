@@ -39,7 +39,7 @@ class DetectorTest extends TestCase
     public function testDuplicateUniqueIndexViolated(): void
     {
         $this->pdo->exec("CREATE TABLE users(id INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL)");
-        $this->pdo->exec('CREATE UNIQUE INDEX users_name_unique on users(name)');
+        $this->pdo->exec('CREATE UNIQUE INDEX users_name_unique ON users(name)');
         $this->pdo->exec("INSERT INTO users(id, name) VALUES(1, 'example')");
 
         try {
