@@ -6,58 +6,80 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - '3306:3306'
-        env:
-          MYSQL_DATABASE: testing
-          MYSQL_USER: testing
-          MYSQL_PASSWORD: testing
-          MYSQL_ROOT_PASSWORD: testing
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=30s
-          --health-retries=5
-      postgres:
-        image: postgres:13.3
-        ports:
-          - '5432:5432'
-        env:
-          POSTGRES_DB: testing
-          POSTGRES_USER: testing
-          POSTGRES_PASSWORD: testing
-        options: >-
-          --health-cmd=pg_isready
-          --health-interval=10s
-          --health-timeout=30s
-          --health-retries=5
-      sqlsrv:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        ports:
-          - '1433:1433'
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Password!
-        options: >-
-          --name sqlsrv
-          --health-cmd "echo quit | /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -l 1 -U sa -P Password!"
-
     strategy:
       matrix:
         php: [7.1, 7.2, 7.3, 7.4, '8.0', 8.1]
-        db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv']
+        db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Cache Docker Registry
+        uses: actions/cache@v2
+        with:
+          path: /tmp/docker-registry
+          key: ${{ matrix.db }}-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.db }}-${{ github.ref }}-${{ github.sha }}
+            ${{ matrix.db }}-${{ github.ref }}
+            ${{ matrix.db }}-refs/head/master
+
+      - name: Boot-up Local Docker Registry
+        run: docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2
+
+      - name: Wait for Docker Registry
+        run: npx wait-on tcp:5000
+
+      - name: Boot-up MySQL Container
+        if: matrix.db == 'mysql'
+        run: |
+          if [[ -z "$(docker images -q localhost:5000/mysql:latest)" ]]; then
+            docker pull mysql:8.0
+            docker tag mysql:8.0 localhost:5000/mysql:latest
+            docker push localhost:5000/mysql:latest
+          fi
+          docker-compose up -d mysql
+          sh -c 'docker-compose logs -f mysql | { sed "/\[Entrypoint\]: MySQL init process done\. Ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+
+      - name: Boot-up Postgres Container
+        if: matrix.db == 'pgsql'
+        run: |
+          if [[ -z "$(docker images -q localhost:5000/postgres:latest)" ]]; then
+            docker pull postgres:13.3
+            docker tag postgres:13.3 localhost:5000/postgres:latest
+            docker push localhost:5000/postgres:latest
+          fi
+          docker-compose up -d postgres
+          sh -c 'docker-compose logs -f postgres | { sed "/PostgreSQL init process complete; ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+
+      - name: Boot-up SQLServer Container
+        if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
+        run: |
+          if [[ -z "$(docker images -q localhost:5000/sqlsrv)" ]]; then
+            docker pull mcr.microsoft.com/mssql/server
+            docker tag mcr.microsoft.com/mssql/server localhost:5000/sqlsrv
+            docker push localhost:5000/sqlsrv
+          fi
+          docker-compose up -d sqlsrv
+          sh -c 'docker-compose logs -f sqlsrv | { sed "/Recovery is complete\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+
+      - name: Boot-up Oracle Container
+        if: matrix.db == 'oci'
+        run: |
+          if [[ -z "$(docker images -q localhost:5000/oracle:latest)" ]]; then
+            docker pull quay.io/maksymbilenko/oracle-12c:latest
+            docker tag quay.io/maksymbilenko/oracle-12c:latest localhost:5000/oracle:latest
+            docker push localhost:5000/oracle:latest
+          fi
+          docker-compose up -d oracle
+          sh -c 'docker-compose logs -f oracle | { sed "/Database ready to use\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
+          extensions: ${{ matrix.db == 'oci' && 'pdo_oci' || '' }}
 
       - name: Set up MySQL
         if: matrix.db == 'mysql'
@@ -73,7 +95,7 @@ jobs:
       - name: Set up SQLServer
         if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
         run: |
-          docker exec sqlsrv \
+          docker-compose exec -T sqlsrv \
             /opt/mssql-tools/bin/sqlcmd \
               -S 127.0.0.1 \
               -U sa \

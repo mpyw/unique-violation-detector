@@ -35,8 +35,15 @@ abstract class TestCase extends BaseTestCase
             if ($this->driver === 'sqlite') {
                 $this->pdo->exec('PRAGMA foreign_keys=true');
             } else {
-                $this->pdo->exec('DROP TABLE IF EXISTS posts');
-                $this->pdo->exec('DROP TABLE IF EXISTS users');
+                // Oracle doesn't support IF EXISTS
+                try {
+                    $this->pdo->exec('DROP TABLE posts');
+                } catch (PDOException $_) {
+                }
+                try {
+                    $this->pdo->exec('DROP TABLE users');
+                } catch (PDOException $_) {
+                }
             }
         } catch (PDOException $e) {
             if ($e->getMessage() === 'could not find driver') {
@@ -87,6 +94,10 @@ abstract class TestCase extends BaseTestCase
                 ]);
             case 'dblib:sqlsrv':
                 return new PDO('dblib:host=127.0.0.1:1433;dbname=testing', 'sa', 'Password!', [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                ]);
+            case 'oci':
+                return new PDO('oci:dbname=//localhost:1521/xe', 'system', 'oracle', [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
             default:

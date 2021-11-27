@@ -14,6 +14,18 @@ composer require mpyw/unique-violation-detector
 |:---|:---|
 | PHP | <code>^7.1 &#124;&#124; ^8.0</code> |
 
+## Supported PDO Drivers
+
+| Database | Driver | Auto-Discoverable |
+|:---|:---|:---:|
+| MySQL | `pdo_mysql` | ✅ |
+| PostgreSQL | `pdo_pgsql` | ✅ |
+| SQLite | `pdo_sqlite` | ✅ |
+| SQLServer | `pdo_sqlsrv` | ✅ |
+| SQLServer | `pdo_odbc` | |
+| SQLServer | `pdo_dblib` | |
+| Oracle | `pdo_oci` | ✅ |
+
 ## Usage
 
 ```php
