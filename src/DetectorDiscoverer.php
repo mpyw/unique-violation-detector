@@ -22,6 +22,8 @@ class DetectorDiscoverer
                 return new SQLiteDetector();
             case 'sqlsrv':
                 return new SQLServerDetector();
+            case 'oci':
+                return new OracleDetector();
             default:
                 throw new DiscoveryFailedException('Failed to automatically discover a detector.');
         }
