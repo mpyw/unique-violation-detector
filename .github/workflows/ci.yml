@@ -12,10 +12,10 @@ jobs:
         db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache Docker Registry
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/docker-registry
           key: ${{ matrix.db }}-${{ github.ref }}-${{ github.sha }}
