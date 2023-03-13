@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [7.1, 7.2, 7.3, 7.4, '8.0', 8.1]
+        php: [7.1, 7.2, 7.3, 7.4, '8.0', 8.1, 8.2]
         db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
@@ -107,6 +107,9 @@ jobs:
 
       - name: Prepare Dependencies
         run: composer install
+
+      - name: Migrate old PHPUnit configuration
+        run: 'vendor/bin/phpunit --migrate-configuration || :'
 
       - name: Test
         run: composer test -- --coverage-clover build/logs/clover.xml
