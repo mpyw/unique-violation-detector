@@ -96,8 +96,8 @@ jobs:
         if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
         run: |
           docker compose exec -T sqlsrv \
-            /opt/mssql-tools/bin/sqlcmd \
-              -S 127.0.0.1 \
+            /opt/mssql-tools18/bin/sqlcmd \
+              -C -S 127.0.0.1 \
               -U sa \
               -P Password! \
               -Q "create database [testing]"
