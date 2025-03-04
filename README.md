@@ -12,7 +12,10 @@ composer require mpyw/unique-violation-detector
 
 | Package | Version |
 |:---|:---|
-| PHP | <code>^7.1 &#124;&#124; ^8.0</code> |
+| PHP | <code>^8.2</code> |
+
+> [!NOTE]
+> Older versions have outdated dependency requirements. If you cannot prepare the latest environment, please refer to past releases.
 
 ## Supported PDO Drivers
 
