@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [7.1, 7.2, 7.3, 7.4, '8.0', 8.1, 8.2]
+        php: [8.2, 8.3, 8.4]
         db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
@@ -38,19 +38,19 @@ jobs:
             docker tag mysql:8.0 localhost:5000/mysql:latest
             docker push localhost:5000/mysql:latest
           fi
-          docker-compose up -d mysql
-          sh -c 'docker-compose logs -f mysql | { sed "/\[Entrypoint\]: MySQL init process done\. Ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+          docker compose up -d mysql
+          sh -c 'docker compose logs -f mysql | { sed "/\[Entrypoint\]: MySQL init process done\. Ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
 
       - name: Boot-up Postgres Container
         if: matrix.db == 'pgsql'
         run: |
           if [[ -z "$(docker images -q localhost:5000/postgres:latest)" ]]; then
-            docker pull postgres:13.3
-            docker tag postgres:13.3 localhost:5000/postgres:latest
+            docker pull postgres:17
+            docker tag postgres:17 localhost:5000/postgres:latest
             docker push localhost:5000/postgres:latest
           fi
-          docker-compose up -d postgres
-          sh -c 'docker-compose logs -f postgres | { sed "/PostgreSQL init process complete; ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+          docker compose up -d postgres
+          sh -c 'docker compose logs -f postgres | { sed "/PostgreSQL init process complete; ready for start up\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
 
       - name: Boot-up SQLServer Container
         if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
@@ -60,8 +60,8 @@ jobs:
             docker tag mcr.microsoft.com/mssql/server localhost:5000/sqlsrv
             docker push localhost:5000/sqlsrv
           fi
-          docker-compose up -d sqlsrv
-          sh -c 'docker-compose logs -f sqlsrv | { sed "/Recovery is complete\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+          docker compose up -d sqlsrv
+          sh -c 'docker compose logs -f sqlsrv | { sed "/Recovery is complete\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
 
       - name: Boot-up Oracle Container
         if: matrix.db == 'oci'
@@ -71,15 +71,23 @@ jobs:
             docker tag quay.io/maksymbilenko/oracle-12c:latest localhost:5000/oracle:latest
             docker push localhost:5000/oracle:latest
           fi
-          docker-compose up -d oracle
-          sh -c 'docker-compose logs -f oracle | { sed "/Database ready to use\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
+          docker compose up -d oracle
+          sh -c 'docker compose logs -f oracle | { sed "/Database ready to use\./ q" && kill $$ ;}' >/dev/null 2>&1 || true
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
-          extensions: ${{ matrix.db == 'oci' && 'pdo_oci' || '' }}
+          extensions: |
+            ${{
+              matrix.db == 'mysql' && 'pdo, pdo_mysql'
+              || matrix.db == 'pgsql' && 'pdo, pdo_pgsql'
+              || matrix.db == 'sqlite' && 'pdo, pdo_sqlite'
+              || matrix.db == 'sqlsrv' && 'pdo, pdo_sqlsrv, pdo_odbc, sqlsrv, odbc'
+              || matrix.db == 'oci' && 'pdo, pdo_oci'
+              || ''
+            }}
 
       - name: Set up MySQL
         if: matrix.db == 'mysql'
@@ -95,21 +103,14 @@ jobs:
       - name: Set up SQLServer
         if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
         run: |
-          docker-compose exec -T sqlsrv \
-            /opt/mssql-tools/bin/sqlcmd \
-              -S 127.0.0.1 \
-              -U sa \
-              -P Password! \
-              -Q "create database [testing]"
+          curl -O https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/m/msodbcsql18/msodbcsql18_18.4.1.1-1_amd64.deb
+          sudo apt-get install -y ./msodbcsql18_18.4.1.1-1_amd64.deb
 
       - name: Prepare Coverage Directory
         run: mkdir -p build/logs
 
       - name: Prepare Dependencies
         run: composer install
-
-      - name: Migrate old PHPUnit configuration
-        run: 'vendor/bin/phpunit --migrate-configuration || :'
 
       - name: Test
         run: composer test -- --coverage-clover build/logs/clover.xml
