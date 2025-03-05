@@ -36,8 +36,6 @@ services:
     environment:
       ACCEPT_EULA: Y
       SA_PASSWORD: Password!
-    healthcheck:
-      test: [CMD-SHELL, 'echo quit | /opt/mssql-tools18/bin/sqlcmd -C -S 127.0.0.1 -l 1 -U sa -P Password!']
 
   oracle:
     image: localhost:5000/oracle:latest
