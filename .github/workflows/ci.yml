@@ -79,7 +79,15 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
-          extensions: ${{ matrix.db == 'oci' && 'pdo_oci' || '' }}
+          extensions: |
+            ${{
+              matrix.db == 'mysql' && 'pdo, pdo_mysql'
+              || matrix.db == 'pgsql' && 'pdo, pdo_pgsql'
+              || matrix.db == 'sqlite' && 'pdo, pdo_sqlite'
+              || matrix.db == 'sqlsrv' && 'pdo, pdo_sqlsrv, pdo_odbc, sqlsrv, odbc'
+              || matrix.db == 'oci' && 'pdo, pdo_oci'
+              || ''
+            }}
 
       - name: Set up MySQL
         if: matrix.db == 'mysql'
