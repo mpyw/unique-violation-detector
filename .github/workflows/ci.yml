@@ -45,8 +45,8 @@ jobs:
         if: matrix.db == 'pgsql'
         run: |
           if [[ -z "$(docker images -q localhost:5000/postgres:latest)" ]]; then
-            docker pull postgres:13.3
-            docker tag postgres:13.3 localhost:5000/postgres:latest
+            docker pull postgres:17
+            docker tag postgres:17 localhost:5000/postgres:latest
             docker push localhost:5000/postgres:latest
           fi
           docker compose up -d postgres
