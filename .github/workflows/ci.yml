@@ -84,7 +84,9 @@ jobs:
               matrix.db == 'mysql' && 'pdo, pdo_mysql'
               || matrix.db == 'pgsql' && 'pdo, pdo_pgsql'
               || matrix.db == 'sqlite' && 'pdo, pdo_sqlite'
-              || matrix.db == 'sqlsrv' && 'pdo, pdo_sqlsrv, pdo_odbc, sqlsrv, odbc'
+              || matrix.db == 'sqlsrv' && 'pdo, pdo_sqlsrv'
+              || matrix.db == 'odbc:sqlsrv' && 'pdo, pdo_odbc'
+              || matrix.db == 'dblib:sqlsrv' && 'pdo, pdo_dblib'
               || matrix.db == 'oci' && 'pdo, pdo_oci'
               || ''
             }}
