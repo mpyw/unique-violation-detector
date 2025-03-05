@@ -92,16 +92,6 @@ jobs:
               ALTER USER 'testing'@'%' IDENTIFIED WITH mysql_native_password BY 'testing';
             "
 
-      - name: Set up SQLServer
-        if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
-        run: |
-          docker compose exec -T sqlsrv \
-            /opt/mssql-tools18/bin/sqlcmd \
-              -C -S 127.0.0.1 \
-              -U sa \
-              -P Password! \
-              -Q "create database [testing]"
-
       - name: Prepare Coverage Directory
         run: mkdir -p build/logs
 
