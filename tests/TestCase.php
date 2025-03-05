@@ -89,7 +89,7 @@ abstract class TestCase extends BaseTestCase
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
             case 'odbc:sqlsrv':
-                return new PDO('odbc:Driver={ODBC Driver 17 for SQL Server};Server=127.0.0.1,1433;Database=master;UID=sa;PWD=Password!', 'sa', 'Password!', [
+                return new PDO('odbc:Driver={ODBC Driver 18 for SQL Server};Server=127.0.0.1,1433;Database=master;UID=sa;PWD=Password!', 'sa', 'Password!', [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 ]);
             case 'dblib:sqlsrv':

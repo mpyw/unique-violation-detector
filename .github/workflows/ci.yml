@@ -100,6 +100,12 @@ jobs:
               ALTER USER 'testing'@'%' IDENTIFIED WITH mysql_native_password BY 'testing';
             "
 
+      - name: Set up SQLServer
+        if: matrix.db == 'sqlsrv' || matrix.db == 'odbc:sqlsrv' || matrix.db == 'dblib:sqlsrv'
+        run: |
+          curl -O https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/m/msodbcsql18/msodbcsql18_18.4.1.1-1_amd64.deb
+          sudo apt-get install -y ./msodbcsql18_18.4.1.1-1_amd64.deb
+
       - name: Prepare Coverage Directory
         run: mkdir -p build/logs
 
