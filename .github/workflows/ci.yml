@@ -12,10 +12,10 @@ jobs:
         db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache Docker Registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /tmp/docker-registry
           key: ${{ matrix.db }}-${{ github.ref }}-${{ github.sha }}
@@ -120,24 +120,19 @@ jobs:
           DB: ${{ matrix.db }}
 
       - name: Upload Coverage
-        uses: nick-invision/retry@v2
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_PARALLEL: 'true'
-          COVERALLS_FLAG_NAME: "db:${{ matrix.db }} php:${{ matrix.php }}"
+        uses: coverallsapp/github-action@v2
         with:
-          timeout_minutes: 1
-          max_attempts: 3
-          command: |
-            composer global require php-coveralls/php-coveralls
-            php-coveralls --coverage_clover=build/logs/clover.xml -v
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: "db:${{ matrix.db }} php:${{ matrix.php }}"
+          parallel: true
+          file: build/logs/clover.xml
 
   coverage-aggregation:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate Coverage
-        uses: coverallsapp/github-action@master
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
