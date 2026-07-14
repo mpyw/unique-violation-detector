@@ -12,7 +12,7 @@ jobs:
         db: [mysql, pgsql, sqlite, sqlsrv, 'odbc:sqlsrv', 'dblib:sqlsrv', oci]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Free Disk Space (for Oracle)
         if: matrix.db == 'oci'
